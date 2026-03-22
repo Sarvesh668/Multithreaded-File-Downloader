@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Tailwind v4 way of adding custom colors and shadows! */
+@theme {
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --shadow-glass: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+@custom-variant dark (&:is(.dark *));
+
+body {
+  @apply bg-[#F3F4F6] text-gray-900 transition-colors duration-200 antialiased;
+}
+
+.dark body {
+  @apply bg-gray-950 text-gray-100;
+}
+
+/* Ensure inputs are always readable */
+input {
+  @apply text-gray-900 dark:text-gray-100;
+}
