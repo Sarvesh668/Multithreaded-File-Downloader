@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String BEARER_PREFIX= "Bearer ";
+   // private static final String BEARER_PREFIX= "Bearer ";
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 

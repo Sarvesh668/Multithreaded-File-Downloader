@@ -66,6 +66,7 @@ public class DownloadTask {
         this.saveDirectory= saveDirectory;
         this.totalBytes=totalBytes;
         this.createdAt=createdAt;
+        this.status = Status.PENDING;
     }
 
     public void setStatus(Status status){

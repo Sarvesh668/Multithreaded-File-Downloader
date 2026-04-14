@@ -1,5 +1,6 @@
 package com.example.filedowloader.demo.service;
 
+import java.io.RandomAccessFile;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -58,10 +59,28 @@ public class DownloadManagerService {
         this.chunkRepository = chunkRepository;
         this.eventPublisher = eventPublisher;
     }
+<<<<<<< HEAD
 
     @Transactional
     public String startDownload(String fileUrl, DownloadRequest request) {
 
+=======
+    
+    public DownloadTask getTaskById(Long taskId) {
+        return taskRepository.findById(taskId).orElse(null);
+    }
+    
+    @Transactional
+    public DownloadTask startDownload(String fileUrl, DownloadRequest pls){
+
+        if (fileUrl == null) {
+        throw new RuntimeException("URL cannot be null");
+    }
+
+     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        // System.out.println("DownloadManagerService triggered!");
+        //System.out.println("URL: " + fileUrl);
+>>>>>>> 9b29fcd (feat: improve download flow and secure local config)
         log.info("DownloadManagerService triggered for URL: {}", fileUrl);
 
         try {
@@ -79,8 +98,30 @@ public class DownloadManagerService {
                     .firstValueAsLong("Content-Length")
                     .orElse(0L);
 
+<<<<<<< HEAD
             // --- 2. USER HANDLING ---
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+=======
+            String contentType = response.headers().firstValue("Content-Type").orElse("unknown");
+            System.out.println("Detected Content-Type: "+contentType);
+
+            if(contentType.contains("text/html")){
+                throw new RuntimeException("Invaid file type. Cannot download HTML webpages");
+            }
+
+            System.out.println("Target file size: " + totalBytes + " bytes");
+
+
+             /*========================================================================= */
+
+           /*User defaultUser= userRepository.findAll().stream().findFirst().orElseGet(()->{
+
+                        System.out.println("Database is empty. Creating default user...");
+                        User newUser= new User("Happy happy", "Itsokay", Role.REGISTERED);
+                        return userRepository.save(newUser);
+           });*/
+
+>>>>>>> 9b29fcd (feat: improve download flow and secure local config)
             User taskOwner;
 
             if ("MAX".equalsIgnoreCase(request.getTier())) {
@@ -98,6 +139,7 @@ public class DownloadManagerService {
                         });
             }
 
+<<<<<<< HEAD
             // --- 3. FILE NAME ---
             String originalFileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
 
@@ -107,6 +149,23 @@ public class DownloadManagerService {
 
             // --- 4. TASK CREATION ---
             DownloadTask task = new DownloadTask(
+=======
+    log.info("DownloadManagerService triggered for URL: {}", fileUrl);
+
+            String originalFileName= fileUrl.substring(fileUrl.lastIndexOf("/")+1);
+
+            if(originalFileName.isEmpty() || !originalFileName.contains(".")    ){
+                originalFileName= "download_"+System.currentTimeMillis()+".pdf";
+            }
+
+            String fullPath = baseSaveDirectory + originalFileName;
+
+                    RandomAccessFile raf = new RandomAccessFile(fullPath, "rw");
+                    raf.setLength(totalBytes);   // only once
+                    raf.close();
+
+           DownloadTask task= new DownloadTask(
+>>>>>>> 9b29fcd (feat: improve download flow and secure local config)
                     taskOwner,
                     originalFileName,
                     fileUrl,
@@ -130,6 +189,7 @@ public class DownloadManagerService {
                 task.getChunks().add(chunk);
             }
 
+<<<<<<< HEAD
             taskRepository.save(task);
 
             // --- 5. EXECUTION USING COMPLETABLE FUTURE ---
@@ -161,6 +221,32 @@ public class DownloadManagerService {
         } catch (Exception e) {
             log.error("Download failed", e);
             throw new RuntimeException(e.getMessage());
+=======
+                System.out.println("The start byte for thread "+i+" is: "+ startByte);
+                System.out.println("The end byte for thread "+i+" is: "+ endByte);
+           }
+           taskRepository.save(task);
+           System.out.println("Successfully saved Task and Chunks to the database!");
+            for(DownloadChunk chunkyBoi: task.getChunks()){
+                    FileWorkerService worker= new FileWorkerService(chunkyBoi, fileUrl, task.getSaveDirectory(),
+                                                     chunkRepository, userRepository, taskRepository, eventPublisher, pls);
+                   // Thread thread= new Thread(worker);
+                    //thread.start();
+                    downloadPool.submit(worker);
+                }
+
+            return task;
+        }
+
+        catch(Exception e){
+           // System.err.println("Failed to fetch file metdata: "+e.getMessage());
+           log.error("Failed to fetch file metadata", e);
+            throw new RuntimeException(e);
+        }
+        finally{
+           // System.out.println("VIRTUAL THREADS were used for the task");
+            log.info("VIRTUAL THREADS were used for the task");
+>>>>>>> 9b29fcd (feat: improve download flow and secure local config)
         }
     }
 }
